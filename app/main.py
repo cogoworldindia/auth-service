@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.db import ensure_database_exists, run_migrations
+from app.db import ensure_database_exists, run_migrations, redis_client
 from app.core.config import settings
 from contextlib import asynccontextmanager
 from app.controllers import router as api_router
@@ -17,7 +17,13 @@ async def lifespan(app: FastAPI):
     # Run Alembic migrations
     await run_migrations()
 
+    # Redis initialization 
+    await redis_client.init_redis()
+
     yield  # App runs while inside this context
+
+    # Shutdown: close Redis connection
+    await redis_client.close_redis()
 
     print(" Shutting down, cleaning up resources...")
 
