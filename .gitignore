@@ -1,0 +1,72 @@
+# ----------------------------
+# Python
+# ----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Byte-compiled / optimized / DLL files
+*.egg-info/
+.eggs/
+*.egg
+dist/
+build/
+
+# ----------------------------
+# Virtual environment
+# ----------------------------
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ----------------------------
+# Logs and temporary files
+# ----------------------------
+*.log
+*.out
+*.tmp
+*.pid
+*.swp
+*.swo
+*.bak
+
+# ----------------------------
+# IDE / Editor settings
+# ----------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ----------------------------
+# Environment / Secrets
+# ----------------------------
+.env
+.env.local
+.env.*.local
+
+# ----------------------------
+# OS-generated files
+# ----------------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------------
+# Testing / Coverage
+# ----------------------------
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+htmlcov/
+
+# ----------------------------
+# Jupyter / Notebooks
+# ----------------------------
+.ipynb_checkpoints/
+*.ipynb
