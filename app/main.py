@@ -3,6 +3,7 @@ from app.db import ensure_database_exists, run_migrations, redis_client
 from app.core.config import settings
 from contextlib import asynccontextmanager
 from app.controllers import router as api_router
+import uvicorn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,3 +42,12 @@ app.include_router(api_router, prefix="/v1/auth", tags=["Authentication"])
 @app.get("/health", tags=["Health"])
 def health_check():
     return {"status": "ok", "service": "auth_service"}
+
+# Entry point for running app
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app",
+        host="127.0.0.1",
+        port=int(settings.APP_PORT),  # read from .env or settings
+        reload=True
+    )

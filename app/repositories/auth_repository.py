@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.auth_data_model import AuthData, ProviderType
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
+from app.models.auth_model import Auth
 
 
 class AuthRepository:
@@ -11,31 +12,40 @@ class AuthRepository:
 
     async def get_by_email(self, email: str):
         """
-        Fetch the AuthData record by email for provider EMAIL.
+        Fetch the Auth record associated with given email for provider EMAIL.
         """
-        stmt = select(AuthData).where(
-            AuthData.auth_identifier == email,
-            AuthData.provider_type == ProviderType.EMAIL
+        stmt = (
+            select(Auth)
+            .join(AuthData)
+            .where(
+                AuthData.auth_identifier == email,
+                AuthData.provider_type == ProviderType.EMAIL
+            )
         )
         result = await self.db.execute(stmt)
-        return result.scalar_one_or_none()
+        return result.scalars().first()  # returns Auth object or None
 
-    async def create(self, email: str, auth_account_id: int = 0, auth_type_id: int = 0):
+    async def create(self, email: str, user_id: str, auth_type_id: int):
         """
         Create new AuthData entry for email-based authentication.
         """
         try:
-            new_auth_data = AuthData(
-                auth_account_id=auth_account_id,  # TODO: replace 0 with actual auth.id when available
-                auth_type_id=auth_type_id,     # TODO: replace 0 with actual auth_type.id for EMAIL
+            auth = Auth(user_id=user_id)
+            self.db.add(auth)
+            await self.db.flush()  # get auth.id
+
+            auth_data = AuthData(
+                auth_account_id=auth.id,
+                auth_type_id=auth_type_id,
                 provider_type=ProviderType.EMAIL,
                 auth_identifier=email,
                 is_verified=True,
             )
-            self.db.add(new_auth_data)
+            self.db.add(auth_data)
+
             await self.db.commit()
-            await self.db.refresh(new_auth_data)
-            return new_auth_data
+            await self.db.refresh(auth)
+            return auth
         except IntegrityError:
             await self.db.rollback()
             raise HTTPException(status_code=400, detail="Auth record already exists")
