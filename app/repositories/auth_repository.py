@@ -10,6 +10,21 @@ class AuthRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    async def get_by_identifier(self, provider: ProviderType, identifier: str):
+        """
+        Generic fetch by provider and identifier.
+        """
+        stmt = (
+            select(Auth)
+            .join(AuthData)
+            .where(
+                AuthData.auth_identifier == identifier,
+                AuthData.provider_type == provider,
+            )
+        )
+        result = await self.db.execute(stmt)
+        return result.scalars().first()
+
     async def get_by_email(self, email: str):
         """
         Fetch the Auth record associated with given email for provider EMAIL.
@@ -24,6 +39,38 @@ class AuthRepository:
         )
         result = await self.db.execute(stmt)
         return result.scalars().first()  # returns Auth object or None
+
+    async def create_for_identifier(
+        self,
+        user_id: str,
+        auth_type_id: int,
+        provider: ProviderType,
+        identifier: str,
+        is_verified: bool = True,
+    ):
+        """
+        Generic create for any provider + identifier.
+        """
+        try:
+            auth = Auth(user_id=user_id)
+            self.db.add(auth)
+            await self.db.flush()  # get auth.id
+
+            auth_data = AuthData(
+                auth_account_id=auth.id,
+                auth_type_id=auth_type_id,
+                provider_type=provider,
+                auth_identifier=identifier,
+                is_verified=is_verified,
+            )
+            self.db.add(auth_data)
+
+            await self.db.commit()
+            await self.db.refresh(auth)
+            return auth
+        except IntegrityError:
+            await self.db.rollback()
+            raise HTTPException(status_code=400, detail="Auth record already exists")
 
     async def create(self, email: str, user_id: str, auth_type_id: int):
         """

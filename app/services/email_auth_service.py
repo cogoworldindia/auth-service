@@ -5,7 +5,10 @@ from app.utils.verification import create_email_verification, verify_email_code
 from app.core.config import settings
 from app.repositories.auth_repository import AuthRepository
 from app.utils.jwt_utils import create_access_token
+from app.services.token_service import TokenService
 from app.utils.http_client import async_post
+from app.services.user_provisioning_service import UserProvisioningService
+from app.models.auth_data_model import ProviderType
 
 
 class EmailAuthService:
@@ -31,32 +34,31 @@ class EmailAuthService:
             if not is_valid:
                 raise HTTPException(status_code=400, detail="Invalid or expired verification code")
 
-            # ---- Check existing user in local DB ----
-            user = await self.repo.get_by_email(email)
+            # ---- Ensure user and local auth via reusable provisioning ----
+            provisioning = UserProvisioningService(self.repo.db)
+            user = await provisioning.ensure_user_and_auth(
+                provider=ProviderType.EMAIL,
+                identifier=email,
+                default_auth_type_id=1,
+                is_verified=True,
+                user_status_payload={"status": "active"},
+            )
+            user_id = user.user_id
 
-            # ---- Create new user via user-service if not found ----
-            if not user:
-                user_response = await async_post(
-                    f"{settings.USER_SERVICE_URL}/user",
-                    json={"status": "active"},
-                )
+            # ---- Generate Tokens (access + refresh) ----
+            access_token = create_access_token({"user_id": user_id, "email": email})
+            token_service = TokenService()
+            refresh_token = await token_service.generate_refresh_token(
+                user_id=str(user_id),
+                metadata={"email": email}
+            )
 
-                if not user_response or user_response.status_code != 200:
-                    raise HTTPException(status_code=500, detail="User creation failed")
-
-                user_data = user_response.json()
-                user_id = user_data["data"]["id"]
-
-                # Create new local auth + auth_data entries
-                user = await self.repo.create(email, user_id, auth_type_id=1)
-            else:
-                print("User already exists locally.", user.user_id)
-                user_id = user.user_id
-
-            # ---- Generate JWT ----
-            token = create_access_token({"user_id": user_id, "email": email})
-
-            return {"access_token": token, "token_type": "bearer", "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60}
+            return {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+                "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            }
 
         except HTTPException:
             raise
