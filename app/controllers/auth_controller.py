@@ -34,8 +34,8 @@ async def validate_access_token(authorization: str = Header(None)):
     
     except HTTPException as e:
         return error_response(
-                message="Token validation failed",
+                message="Authorization failed",
                 error=str(e),
-                http_status=500,
-                code=500
+                http_status=401,
+                code=401
             )

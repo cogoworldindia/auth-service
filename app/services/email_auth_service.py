@@ -29,8 +29,7 @@ class EmailAuthService:
         and creates local auth + auth_data records.
         """
         try:
-            # is_valid = await verify_email_code(email, code)
-            is_valid = True  # Replace with your verify_email_code(email, code)
+            is_valid = await verify_email_code(email, code)
             if not is_valid:
                 raise HTTPException(status_code=400, detail="Invalid or expired verification code")
 

@@ -20,7 +20,7 @@ async def send_verification(email: str, db: AsyncSession = Depends(get_db)):
             )
     except Exception as e:
         return error_response(
-                message="Failed to create user",
+                message="Failed to send OTP",
                 error=str(e),
                 http_status=500,
                 code=500
@@ -41,6 +41,6 @@ async def verify_code(email: str, code: str, db: AsyncSession = Depends(get_db))
         return error_response(
                     message="Failed to verify OTP",
                     error=str(e),
-                    http_status=500,
-                    code=500
+                    http_status=400,
+                    code=400
                 )
