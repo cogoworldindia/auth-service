@@ -19,7 +19,7 @@ class AuthRepository:
             .join(AuthData)
             .where(
                 AuthData.auth_identifier == identifier,
-                AuthData.provider_type == provider,
+                # AuthData.provider_type == provider,
             )
         )
         result = await self.db.execute(stmt)

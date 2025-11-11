@@ -4,27 +4,31 @@ from app.core.config import settings
 from contextlib import asynccontextmanager
 from app.controllers import router as api_router
 import uvicorn
+import app.core.firebase as initialize_firebase_admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown lifecycle events."""
-    database_url = settings.DATABASE_URL
+    database_url = settings.DATABASE_URL_SYNC
     if not database_url:
         raise ValueError("DATABASE_URL not found in environment variables.")
 
     # Ensure DB exists
-    await ensure_database_exists(database_url)
+    ensure_database_exists(database_url)
 
     # Run Alembic migrations
-    await run_migrations()
+    # run_migrations(database_url)
 
     # Redis initialization 
-    await redis_client.init_redis()
+    redis_client.init_redis()
+
+    # Firebase initialization
+    initialize_firebase_admin.initialize_firebase()
 
     yield  # App runs while inside this context
 
     # Shutdown: close Redis connection
-    await redis_client.close_redis()
+    redis_client.close_redis()
 
     print(" Shutting down, cleaning up resources...")
 
@@ -33,6 +37,7 @@ app = FastAPI(
     title="Auth Service",
     description="Handles authentication and token management",
     version="1.0.0",
+    lifespan=lifespan
 )
 
 # Include routers

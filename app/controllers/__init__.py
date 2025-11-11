@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 # Create a master router that includes all route modules
-from app.controllers import email_auth_controller, auth_controller, token_controller
+from app.controllers import email_auth_controller, auth_controller, token_controller, google_auth_controller
 
 router = APIRouter()
 router.include_router(email_auth_controller.router, prefix="/email", tags=["Email Auth"])
+router.include_router(google_auth_controller.router, prefix="/google", tags=["Google Auth"])
 router.include_router(auth_controller.router, prefix="/validate", tags=["Validate Token"])
 router.include_router(token_controller.router, tags=["Token"])

@@ -70,3 +70,8 @@ htmlcov/
 # ----------------------------
 .ipynb_checkpoints/
 *.ipynb
+
+# ----------------------------
+# Firebase service account
+# ----------------------------
+*firebase-adminsdk*.json
