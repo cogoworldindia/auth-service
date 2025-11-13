@@ -16,12 +16,14 @@ class EmailAuthService:
         self.repo = AuthRepository(db)
 
     async def send_verification(self, email: str):
-        code = await create_email_verification(email)
-        subject = "Verify your CoGo Account"
-        body = f"<h3>Your verification code is: <b>{code}</b></h3>"
-
-        await send_verification_email(email, subject, body)
-        return {"message": "Verification email sent"}
+        try:
+            code = await create_email_verification(email)
+            subject = "Verify your CoGo Account"
+            body = f"<h3>Your verification code is: <b>{code}</b></h3>"
+            await send_verification_email(email, subject, body)
+            return {"message": "Verification email sent"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error sending verification email: {str(e)}")
 
     async def verify_code(self, email: str, code: str):
         """
