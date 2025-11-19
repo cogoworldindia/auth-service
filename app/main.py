@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     ensure_database_exists(database_url)
 
     # Run Alembic migrations
-    # run_migrations(database_url)
+    run_migrations()
 
     # Redis initialization 
     redis_client.init_redis()

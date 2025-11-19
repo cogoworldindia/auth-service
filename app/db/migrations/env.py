@@ -8,7 +8,7 @@ from app.core.config import settings
 
 # Alembic Config object
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL_SYNC)
 
 # Interpret the config file for Python logging
 fileConfig(config.config_file_name)
@@ -17,7 +17,7 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline():
-    url = settings.DATABASE_URL
+    url = settings.DATABASE_URL_SYNC
     context.configure(
         url=url,
         target_metadata=target_metadata,
