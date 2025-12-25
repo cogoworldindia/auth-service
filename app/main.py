@@ -12,12 +12,12 @@ async def lifespan(app: FastAPI):
     database_url = settings.DATABASE_URL_SYNC
     if not database_url:
         raise ValueError("DATABASE_URL not found in environment variables.")
-
+    print(" Starting up, initializing resources...1234567890")
     # Ensure DB exists
     ensure_database_exists(database_url)
 
     # Run Alembic migrations
-    # run_migrations(database_url)
+    run_migrations()
 
     # Redis initialization 
     redis_client.init_redis()
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
     # Shutdown: close Redis connection
     redis_client.close_redis()
 
-    print(" Shutting down, cleaning up resources...")
+    # print(" Shutting down, cleaning up resources...")
 
 
 app = FastAPI(
@@ -52,7 +52,7 @@ def health_check():
 if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
-        host="127.0.0.1",
+        host="0.0.0.0",
         port=int(settings.APP_PORT),  # read from .env or settings
         reload=True
     )

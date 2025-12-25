@@ -8,9 +8,8 @@ from fastapi.encoders import jsonable_encoder
 router = APIRouter(prefix="", tags=["Google Auth"])
 
 @router.post("/")
-async def google_signup(payload: dict, db: AsyncSession = Depends(get_db)):
+async def google_signup(id_token: str, db: AsyncSession = Depends(get_db)):
     try:
-        id_token = payload.get("id_token")
         if not id_token:
             return error_response(
                         message="Missing Google ID token",
